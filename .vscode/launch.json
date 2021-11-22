@@ -15,11 +15,8 @@
             "name": "Python: Manage",
             "type": "python",
             "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal",
-            "args": [
-                "~/IdeaProjects/beancount/beancount/data/import"
-            ]
+            "program": "src/main.py",
+            "console": "integratedTerminal"
         },
     ]
 }
