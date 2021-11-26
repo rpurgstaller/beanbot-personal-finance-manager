@@ -1,3 +1,4 @@
+from typing import Iterable
 from sqlalchemy import Column, Integer, DateTime, String
 from sqlalchemy.sql.functions import func
 from sqlalchemy.sql.schema import ForeignKey
@@ -7,11 +8,11 @@ from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.orm.session import Session
 
-
+from util.path import DB_PATH
 
 
 Model = declarative_base()
-_engine = create_engine('sqlite:////workspaces/beancount-cli/data/database/model.db')
+_engine = create_engine(f'sqlite:///{DB_PATH}/model.db')
 _session = None
 
 
@@ -21,24 +22,6 @@ def get_session():
         _session = Session(_engine)
     
     return _session
-
-
-def execute_script(filepath : str):
-    with _engine.connect() as con:
-        with open(filepath, 'r') as file:
-
-            session = get_session()
-
-            text = file.read()
-
-            statements = text.replace('\n', '').split(';')
-
-            for stmt in statements:
-                try:
-                    con.execute(stmt)
-                except Exception as e:
-                    print(f'Unable to execute statement \'{stmt}\' in file \'{os.path.basename(filepath)}\', ERR: {e}')
-
 
 def reset():
     metadata = MetaData()
@@ -61,7 +44,12 @@ def sessioncommit(func):
     def wrap(*args, **kwargs):
         session = get_session()
         obj = func(*args, **kwargs)
-        session.add(obj)
+
+        if isinstance(obj, Iterable):
+            session.add_all(obj)
+        else:
+            session.add(obj)
+            
         session.commit()
     return wrap
 
@@ -73,6 +61,10 @@ class DbBaseModel(Model):
 
     created_on = Column(DateTime, default=func.now())
     updated_on = Column(DateTime, onupdate=func.now())
+
+    @classmethod
+    def build(cls):
+        pass
 
     def as_dict(self):
         return {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}

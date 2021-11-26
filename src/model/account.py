@@ -19,18 +19,21 @@ class DbAccount(DbBaseModel):
     def get_full_name(self) -> str:
         return f'{self.account_type}:{self.name}'
 
-    def __str__(self) -> str:
-        return f'[{self.key}] {self.get_full_name()}'
+    @classmethod
+    def build(cls, account_type, name, key, currency='EUR'):
+        account = cls()
+        account.account_type = account_type
+        account.name = name
+        account.key = key
+        return account
 
     @staticmethod
     def get_full_account_dict(session):
         return {a.key : a for a in session.query(DbAccount).all()}
 
     @staticmethod
-    @sessioncommit
-    def build(account_type, name, key):
-        return DbAccount(account_type=account_type, name=name, key=key)
-
-    @staticmethod
     def get_all():
         return get_session().query(DbAccount).all()
+
+    def __str__(self) -> str:
+        return f'[{self.key}] {self.get_full_name()}'
