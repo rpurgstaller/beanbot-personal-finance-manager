@@ -69,4 +69,8 @@ class DbBaseModel(Model):
     def as_dict(self):
         return {c.name: str(getattr(self, c.name)) for c in self.__table__.columns}
 
-
+    @classmethod
+    def delete_by_id(cls, id : int):
+        session = get_session()
+        session.query(cls).filter(cls.id == id).delete(synchronize_session=False)
+        session.commit()
