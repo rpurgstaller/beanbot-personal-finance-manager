@@ -5,11 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Manage",
+            "name": "Python: test",
+            "type": "python",
+            "request": "launch",
+            "program": "src",
+            "console": "integratedTerminal",
+            "args": ["-m", "unittest"]
+        },
+        {
+            "name": "Python: list tests",
+            "type": "python",
+            "request": "launch",
+            "program": "src",
+            "console": "integratedTerminal",
+            "args": ["-m", "unittest", "-h"]
+        },
+        {
+            "name": "Python: dev",
             "type": "python",
             "request": "launch",
             "program": "src/main.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": ["--mode", "dev"]
         },
         {
             "name": "Python: Current File",

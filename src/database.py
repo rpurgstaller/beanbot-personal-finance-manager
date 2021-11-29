@@ -12,7 +12,7 @@ from util.path import DB_PATH
 
 
 Model = declarative_base()
-_engine = create_engine(f'sqlite:///{DB_PATH}/model.db')
+_engine = None
 _session = None
 
 
@@ -29,8 +29,9 @@ def reset():
     Model.metadata.drop_all(_engine, metadata.tables.values(), checkfirst=True)
 
 
-def create():
+def create(db_filename):
     metadata = MetaData()
+    _engine = create_engine(f'sqlite:///{DB_PATH}/{db_filename}')
     metadata.reflect(bind=_engine)
     Model.metadata.create_all(_engine)
 

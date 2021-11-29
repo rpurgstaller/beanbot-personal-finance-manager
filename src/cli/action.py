@@ -149,10 +149,13 @@ class ActionTransactionImportCsv(Action):
         self.action = cust_prompt([
             get_path('Please enter the path to the CSV file')
         ])
+
+        self.path_name = self.action[PATH_NAME]
+
         self.execute()
 
     def execute(self) -> None:
-        GiroImporter().execute(self.action[PATH_NAME])
+        GiroImporter().execute(self.path_name)
 
 
 class ActionPizza(Action):
