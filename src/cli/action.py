@@ -11,7 +11,7 @@ from cli.prompt import CLASS_OPTION, PATH_NAME, confirmation, cust_prompt, cust_
 from data_import.bank_importer import GiroImporter
 
 from model.account import DbAccount
-
+import os
 
 def returntomain(func):
     def wrap(*args, **kwargs):
@@ -155,7 +155,7 @@ class ActionTransactionImportCsv(Action):
         self.execute()
 
     def execute(self) -> None:
-        GiroImporter().execute(self.path_name)
+        GiroImporter(os.environ['BEANBOT_GIRO_ACCOUNT']).execute(self.path_name)
 
 
 class ActionPizza(Action):

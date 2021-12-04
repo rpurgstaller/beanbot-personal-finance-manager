@@ -10,11 +10,8 @@ class DbAccount(DbBaseModel):
     __tablename__ = 'accounts'
 
     account_type = Column(String, nullable=False)
-
     name = Column(String, nullable=False, unique=False)
-
     key = Column(String, nullable=False, unique=True)
-
     currency = Column(String, default='EUR')
 
     def get_full_name(self) -> str:
@@ -44,7 +41,8 @@ class DbAccount(DbBaseModel):
         if order_by_criterion is None:
             order_by_criterion = [DbAccount.account_type.asc(), DbAccount.name.asc()]
 
-        return get_session().query(DbAccount).order_by(*order_by_criterion).all()
+        s = get_session()
+        return s.query(DbAccount).order_by(*order_by_criterion).all()
 
     def __str__(self) -> str:
         return f'[{self.key}] {self.get_full_name()}'

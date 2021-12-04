@@ -9,45 +9,38 @@ from model.transaction import DbTransaction
 
 class GiroImporter():
 
-    ACCOUNT_KEY = os.environ['BEANBOT_GIRO_ACCOUNT']
-
-    CFG_MAPPING_PARTNER = {
+    #TODO config file
+    CFG_MAPPING_TRANSACTION = {
         "Partnername" : "partner_name",
         "Partner IBAN" : "partner_iban",
         "BIC/SWIFT" : "partner_bic",
-        "Partner Kontonummer" : "partner_account",
+        "Partner Kontonummer" : "partner_account_number",
         "Bankleitzahl" : "partner_bank_code",
-        # required for partner assignment
-        "Bucungs-Info": "reference"
-    }
-
-    CFG_MAPPING_TRANSACTION = {
         "Buchungsdatum": "date",
         "Betrag" : "amount",
-        "Währung" : "currency",
-        "Bucungs-Info": "reference"
+        "Währung" : "currency_code",
+        "Buchungs-Info": "reference"
     }
 
-    def __init__(self) -> None:
+    def __init__(self, account_key) -> None:
         super().__init__()
+        self.account_key = account_key
 
     def execute(self, filename : str):
         session = get_session()
 
         accounts = DbAccount.get_full_account_dict(session)
         
-        giro_account = accounts[GiroImporter.ACCOUNT_KEY]
-
-        partners = CsvImporter().execute(filename, DbPartner.build_and_assign, GiroImporter.CFG_MAPPING_PARTNER)
+        giro_account = accounts[self.account_key]
 
         transactions = CsvImporter().execute(filename, DbTransaction.build, GiroImporter.CFG_MAPPING_TRANSACTION)
 
-        for partner, transaction in zip(partners, transactions):
-            transaction.partner_id = partner.id
+        for transaction in transactions:
             transaction.account_id = giro_account.id
+            # TODO execute rules
 
         # find partners without account
-        unassigned_partners = session.query(DbPartner).filter(DbPartner.account_id is None)
+        unassigned_transactions = [t for t in transactions if t.partner_account_id is None]
 
-        session.add_all(partners + transactions)
+        session.add_all(transactions)
         session.commit()

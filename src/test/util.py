@@ -4,6 +4,15 @@ import database as db
 from data_import.bank_importer import GiroImporter
 
 
+def testdb(func):
+    def wrap(*args, **kwargs):
+        cfg = config_by_name['test']()
+        db.initialize_and_reset(cfg.DB_FILENAME)
+
+        return func(*args, **kwargs)
+    return wrap
+    
+
 class TestDatabase(unittest.TestCase):
 
     @classmethod

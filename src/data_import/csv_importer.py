@@ -14,7 +14,7 @@ class CsvImporter(object):
             columns = next(reader)
 
             if column_transformation:
-                columns = [column_transformation[col] for col in columns]
+                columns = [column_transformation[col] for col in columns if col in column_transformation]
 
             for row in reader:
                 objects.append(builder_func(**{col : row[idx] for idx, col in enumerate(columns)}))

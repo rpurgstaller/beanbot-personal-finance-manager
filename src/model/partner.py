@@ -9,23 +9,19 @@ from sqlalchemy.sql.schema import ForeignKey
 class DbPartner(DbBaseModel):
     __tablename__ = 'partner'
 
-    name = Column(String, nullable=False)
-
-    iban = Column(String)
-
-    bic = Column(String)
-
-    account = Column(String)
-
-    bank_code = Column(String)
+    partner_name = Column(String, nullable=False)
+    partner_iban = Column(String)
+    partner_bic = Column(String)
+    partner_account_number = Column(String)
+    partner_bank_code = Column(String)
 
     account_id = Column(Integer, ForeignKey(DbAccount.id))
     
-    account = relationship('DbAccount', foreign_keys='DbTransaction.account_id')
+    account = relationship('DbAccount', foreign_keys='DbPartner.account_id')
     
     @classmethod
     @sessioncommit
-    def build_and_assign(cls, name, iban, bic, account, bank_code):
+    def build_and_assign(cls, name, iban, bic, account, bank_code, reference):
         session = get_session()
 
         # TODO assign according to the rule engine
