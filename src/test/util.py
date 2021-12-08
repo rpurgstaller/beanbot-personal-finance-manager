@@ -25,11 +25,6 @@ class TestDatabase(unittest.TestCase):
     def tearDownClass(cls) -> None:
         pass
 
-class TestGiroImporter(unittest.TestCase):
-    
-    def test_import(self):
-        importer = GiroImporter()
-        importer.execute('/workspaces/beancount-cli/data/test/giro_transaction_test.csv')
 
 
 if __name__ == '__main__':

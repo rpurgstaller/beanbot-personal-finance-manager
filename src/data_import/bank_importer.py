@@ -1,10 +1,11 @@
 import os
+from typing import List
 from data_import.csv_importer import CsvImporter
-from database import DbBaseModel, get_session
+from database import BaseModel, get_session
 
-from model.account import DbAccount
-from model.partner import DbPartner
-from model.transaction import DbTransaction
+from model.account import Account
+from model.rule import Rule
+from model.transaction import Transaction
 
 
 class GiroImporter():
@@ -29,15 +30,19 @@ class GiroImporter():
     def execute(self, filename : str):
         session = get_session()
 
-        accounts = DbAccount.get_full_account_dict(session)
+        accounts = Account.get_full_account_dict(session)
         
         giro_account = accounts[self.account_key]
 
-        transactions = CsvImporter().execute(filename, DbTransaction.build, GiroImporter.CFG_MAPPING_TRANSACTION)
+        rules : List[Rule] = session.query(Rule).filter(Rule.account_id==giro_account.id).all()
+
+        transactions = CsvImporter().execute(filename, Transaction.build, GiroImporter.CFG_MAPPING_TRANSACTION)
 
         for transaction in transactions:
             transaction.account_id = giro_account.id
-            # TODO execute rules
+            for rule in rules:
+                if rule.should_apply(transaction):
+                    rule.transform(transaction)
 
         # find partners without account
         unassigned_transactions = [t for t in transactions if t.partner_account_id is None]

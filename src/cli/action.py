@@ -6,12 +6,14 @@ from examples import custom_style_3
 
 from beancount.core.account_types import DEFAULT_ACCOUNT_TYPES
 from sqlalchemy.sql.expression import false
-from cli.prompt import CLASS_OPTION, PATH_NAME, confirmation, cust_prompt, cust_prompt_class_option, get_class_option_list, get_path
+from cli.prompt import CLASS_OPTION, PATH_NAME, confirmation, cust_prompt, cust_prompt_class_option, get_class_option_list, get_path, input
 
 from data_import.bank_importer import GiroImporter
 
-from model.account import DbAccount
+from model.account import Account
 import os
+
+from model.condition import ConditionIsExpense, ConditionIsIncome, ConditionRegexp
 
 def returntomain(func):
     def wrap(*args, **kwargs):
@@ -81,7 +83,7 @@ class ActionAddAccount(Action):
         self.execute()
 
     def execute(self) -> None:
-        DbAccount.build(**self.action)
+        Account.build(**self.action)
 
 
 class ActionListAccounts(Action):
@@ -90,7 +92,7 @@ class ActionListAccounts(Action):
         self.execute()
 
     def execute(self) -> None:
-        accounts = DbAccount.get_all()
+        accounts = Account.get_all()
         print("Existing Accounts: ")
         for account in accounts:
             print(f'  - {str(account)}')
@@ -99,7 +101,7 @@ class ActionListAccounts(Action):
 class ActionDelAccount(Action):
     @returntomain
     def prompt(self) -> None:
-        accounts = DbAccount.get_all()
+        accounts = Account.get_all()
         self.action = cust_prompt([
             {
                 'type': 'list',
@@ -117,7 +119,7 @@ class ActionDelAccount(Action):
         self.execute()
 
     def execute(self) -> None:
-        DbAccount.delete_by_id(self.action['account_id'])
+        Account.delete_by_id(self.action['account_id'])
 
 
 class ActionImportAccountCsv(Action):
@@ -129,7 +131,7 @@ class ActionImportAccountCsv(Action):
         self.execute()
 
     def execute(self) -> None:
-        DbAccount.build_from_file(self.action[PATH_NAME])
+        Account.build_from_file(self.action[PATH_NAME])
         
 
 class ActionTransactionMain(Action):
@@ -147,7 +149,7 @@ class ActionTransactionImportCsv(Action):
     @returntomain
     def prompt(self) -> None:
         self.action = cust_prompt([
-            get_path('Please enter the path to the CSV file')
+            get_path('Enter the path to the CSV file')
         ])
 
         self.path_name = self.action[PATH_NAME]
@@ -156,6 +158,68 @@ class ActionTransactionImportCsv(Action):
 
     def execute(self) -> None:
         GiroImporter(os.environ['BEANBOT_GIRO_ACCOUNT']).execute(self.path_name)
+
+
+class ActionCreateRule(Action):
+
+    @returntomain
+    def prompt(self) -> None:
+        self.action = cust_prompt([
+            {
+
+            }
+        ])
+
+    def execute(self) -> None:
+        pass
+
+
+class ActionCreateRuleTransformation(Action):
+
+    TRANSACTION_ATTRIBUTES = {
+        'partner_account_id' : 'partner account',
+        'partner_name' : 'partner name'
+    }
+
+    @returntomain
+    def prompt(self) -> None:
+        self.action = cust_prompt([
+            {
+
+            }
+        ])
+
+    def execute(self) -> None:
+        pass
+
+
+class ActionCreateCondition(Action):
+
+    CONDITION_TYPES = {
+        'Regexp' : ConditionRegexp,
+        'Is Income' : ConditionIsIncome,
+        'Is Expense' : ConditionIsExpense
+    }
+
+    TRANSACTION_ATTRIBUTES = {
+        'reference' : 'reference',
+        'partner_name' : 'partner name'
+    }
+        
+    @returntomain
+    def prompt(self) -> None:
+
+        regexp_prompt_lambda = lambda answers: answers['option'] == 'Regexp'
+
+        self.action = cust_prompt([
+            get_class_option_list(ActionCreateCondition.CONDITION_TYPES.keys(), 'Choose condition type'),
+            input('regexp', 'Enter regexp', when=regexp_prompt_lambda),
+            get_class_option_list(ActionCreateCondition.TRANSACTION_ATTRIBUTES, 'Choose transaction attribute', 
+                when=regexp_prompt_lambda)
+        ])
+
+    def execute(self) -> None:
+        x = self.action
 
 
 class ActionPizza(Action):

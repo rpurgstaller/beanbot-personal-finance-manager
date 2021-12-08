@@ -1,7 +1,7 @@
 import unittest
 from data_import.bank_importer import GiroImporter
 from config import config_by_name
-from model.account import DbAccount
+from model.account import Account
 import os
 
 from database import get_session, sessioncommit
@@ -20,13 +20,13 @@ class TestAccount(unittest.TestCase):
     def test_create(self):
         session = get_session()
         objs = [
-            DbAccount(account_type='Expenses', name='Test:SomeExpense', key="TEST_EXP"),
-            DbAccount(account_type='Income', name='Test:SomeIncome', key="TEST_INC")
+            Account(account_type='Expenses', name='Test:SomeExpense', key="TEST_EXP"),
+            Account(account_type='Income', name='Test:SomeIncome', key="TEST_INC")
         ]
         session.add_all(objs)
         session.commit()
 
-        accounts = DbAccount.get_all()
+        accounts = Account.get_all()
         self.assertEqual(len(objs), len(accounts))
         
         for obj in objs:

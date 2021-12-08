@@ -3,8 +3,8 @@ import unittest
 
 from data_import.bank_importer import GiroImporter
 from config import config_by_name
-from model.account import DbAccount
-from model.transaction import DbTransaction
+from model.account import Account
+from model.transaction import Transaction
 import os
 
 from database import get_session, sessioncommit
@@ -20,7 +20,7 @@ class TestGiroImporter(unittest.TestCase):
     def setUp(self) -> None:
         # required db objects
         return [
-            DbAccount(account_type='Expenses', name='test', key=TestGiroImporter.GIRO_ACCOUNT_KEY)
+            Account(account_type='Expenses', name='test', key=TestGiroImporter.GIRO_ACCOUNT_KEY)
         ]
     
     def test_import(self):
@@ -33,7 +33,7 @@ class TestGiroImporter(unittest.TestCase):
         
         importer.execute(file)
 
-        transactions = session.query(DbTransaction).all()
+        transactions = session.query(Transaction).all()
 
         with open(file) as csvDataFile:
             reader = csv.reader(csvDataFile)

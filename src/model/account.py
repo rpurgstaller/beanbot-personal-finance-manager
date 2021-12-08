@@ -2,10 +2,10 @@ from sqlalchemy import Column, Integer, String, Date
 from sqlalchemy.sql.expression import false
 from data_import.csv_importer import CsvImporter
 
-from database import DbBaseModel, get_session, sessioncommit
+from database import BaseModel, get_session, sessioncommit
 
 
-class DbAccount(DbBaseModel):
+class Account(BaseModel):
 
     __tablename__ = 'accounts'
 
@@ -20,7 +20,7 @@ class DbAccount(DbBaseModel):
     @staticmethod
     @sessioncommit
     def build_from_file(filename):
-        return CsvImporter().execute(filename, DbAccount.build)
+        return CsvImporter().execute(filename, Account.build)
 
     @classmethod
     @sessioncommit
@@ -34,15 +34,15 @@ class DbAccount(DbBaseModel):
 
     @staticmethod
     def get_full_account_dict(session):
-        return {a.key : a for a in session.query(DbAccount).all()}
+        return {a.key : a for a in session.query(Account).all()}
 
     @staticmethod
     def get_all(order_by_criterion = None):
         if order_by_criterion is None:
-            order_by_criterion = [DbAccount.account_type.asc(), DbAccount.name.asc()]
+            order_by_criterion = [Account.account_type.asc(), Account.name.asc()]
 
-        s = get_session()
-        return s.query(DbAccount).order_by(*order_by_criterion).all()
+        session = get_session()
+        return session.query(Account).order_by(*order_by_criterion).all()
 
     def __str__(self) -> str:
         return f'[{self.key}] {self.get_full_name()}'

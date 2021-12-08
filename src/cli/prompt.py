@@ -31,27 +31,37 @@ def cust_prompt_class_option(choices : Dict, message : str):
 
 def confirmation(message : str = 'Are you sure?'):
     return {
-                'type': 'confirm',
-                'name': CONFIRMATION_NAME,
-                'message': message,
-                'default': True
-            }
+        'type': 'confirm',
+        'name': CONFIRMATION_NAME,
+        'message': message,
+        'default': True
+    }
 
 
 def get_path(message : str):
     return {
-                'type': 'input',
-                'name': PATH_NAME,
-                'message': message,
-                'validate': PathValidation,
-                'default': IMPORT_PATH
-            }
+        'type': 'input',
+        'name': PATH_NAME,
+        'message': message,
+        'validate': PathValidation,
+        'default': IMPORT_PATH
+    }
 
 
 def get_class_option_list(choices : List, message : str):
     return {
-                'type': 'list',
-                'message': message,
-                'name': 'option',
-                'choices': choices
-            }
+        'type': 'list',
+        'message': message,
+        'name': 'option',
+        'choices': choices
+    }
+
+
+def input(name, message, default=None, when=None):
+    return {
+        'type' : 'input',
+        'name' : name,
+        'message' : message,
+        'default' : default,
+        'when' : when
+    }

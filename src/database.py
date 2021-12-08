@@ -86,7 +86,7 @@ class DB:
         return self._session
 
 
-class DbBaseModel(Model):
+class BaseModel(Model):
     __abstract__ = True
 
     id = Column(Integer, primary_key=True)
