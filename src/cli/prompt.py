@@ -3,6 +3,7 @@ from cli.validation import PathValidation
 from examples import custom_style_3
 
 from PyInquirer import prompt
+from model.account import Account
 
 from util.path import IMPORT_PATH
 
@@ -21,7 +22,7 @@ def cust_prompt(arr : List):
 def cust_prompt_class_option(choices : Dict, message : str):
     action = cust_prompt(
         [
-            get_class_option_list(choices.keys(), message)
+            get_option_list(choices.keys(), message)
         ]
     )
 
@@ -48,11 +49,11 @@ def get_path(message : str):
     }
 
 
-def get_class_option_list(choices : List, message : str):
+def get_option_list(choices : List, message : str, name='option'):
     return {
         'type': 'list',
         'message': message,
-        'name': 'option',
+        'name': name,
         'choices': choices
     }
 
@@ -64,4 +65,17 @@ def input(name, message, default=None, when=None):
         'message' : message,
         'default' : default,
         'when' : when
+    }
+
+def account_chooser(name='account_id', message='Select account'):
+    return {
+        'type': 'list',
+        'name': name,
+        'message': message,
+        'choices': [
+            {
+                'name': str(account),
+                'value': account.id
+            } for account in Account.get_all()
+        ]
     }
