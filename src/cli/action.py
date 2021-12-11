@@ -6,7 +6,7 @@ from examples import custom_style_3
 
 from beancount.core.account_types import DEFAULT_ACCOUNT_TYPES
 from sqlalchemy.sql.expression import false
-from cli.prompt import CLASS_OPTION, PATH_NAME, confirmation, cust_prompt, cust_prompt_class_option, get_class_option_list, get_path, input
+from cli.prompt import CLASS_OPTION, PATH_NAME, account_chooser, confirmation, cust_prompt, cust_prompt_class_option, get_option_list, get_path, input
 
 from data_import.bank_importer import GiroImporter
 
@@ -14,6 +14,7 @@ from model.account import Account
 import os
 
 from model.condition import ConditionIsExpense, ConditionIsIncome, ConditionRegexp
+from model.rule import Rule
 
 def returntomain(func):
     def wrap(*args, **kwargs):
@@ -38,6 +39,7 @@ class ActionMain(Action):
         choices = {
             'Accounts': ActionAccountMain,
             'Transactions': ActionTransactionMain,
+            'Rules' : ActionRuleMain,
             'pizza': ActionPizza,
             'exit': ActionExit
         }
@@ -101,19 +103,8 @@ class ActionListAccounts(Action):
 class ActionDelAccount(Action):
     @returntomain
     def prompt(self) -> None:
-        accounts = Account.get_all()
         self.action = cust_prompt([
-            {
-                'type': 'list',
-                'name': 'account_id',
-                'message': 'Select account to delete',
-                'choices': [
-                    {
-                        'name': str(account),
-                        'value': account.id
-                    } for account in accounts
-                ]
-            },
+            account_chooser(message='Select account to delete'),
             confirmation()
         ])
         self.execute()
@@ -160,18 +151,61 @@ class ActionTransactionImportCsv(Action):
         GiroImporter(os.environ['BEANBOT_GIRO_ACCOUNT']).execute(self.path_name)
 
 
-class ActionCreateRule(Action):
+class ActionRuleMain(Action):
+
+    def prompt(self) -> None:
+        choices = {
+            'Add Rule': ActionAddRule,
+            'List Rules': ActionListRules,
+            'Delete Rule': ActionDelRule
+        }
+
+        cust_prompt_class_option(choices, 'choose option')
+
+
+class ActionAddRule(Action):
 
     @returntomain
     def prompt(self) -> None:
-        self.action = cust_prompt([
+        self.action_rule = cust_prompt([
+            account_chooser(message='Select account associated to the rule'),
             {
-
+                'type': 'input',
+                'message': 'Enter rule description',
+                'name': 'name',
             }
         ])
 
+        choices = {
+            'Transformation': ActionCreateRuleTransformation,
+            'Conditions': ActionCreateCondition,
+            'Done' : None
+        }
+
+        #self.transformations = []
+        #self.conditions = []
+
+        #action_results = {
+        #    ActionCreateRuleTransformation : lambda action_result : self.transformations.append(action_result),
+        #    ActionCreateCondition : lambda action_result : self.conditions.append(action_result)
+        #}
+
+        self.action_results = []
+
+        while 1:
+            action_class = cust_prompt(get_option_list(choices.keys(), "Chose option"))['option']
+            if not action_class:
+                break
+
+            action_instance = action_class()
+            action_instance.prompt()
+            self.action_results.append(action_instance)
+
+        self.execute()
+
     def execute(self) -> None:
-        pass
+        rule_params = self.action_rule
+        action_results = self.action_results
 
 
 class ActionCreateRuleTransformation(Action):
@@ -185,12 +219,51 @@ class ActionCreateRuleTransformation(Action):
     def prompt(self) -> None:
         self.action = cust_prompt([
             {
-
+                get_option_list(ActionCreateRuleTransformation.TRANSACTION_ATTRIBUTES, "Choose transaction attribute to transform", 
+                    name='transaction_attribute'),
+    
             }
         ])
 
     def execute(self) -> None:
         pass
+
+
+class ActionListRules(Action):
+
+    @returntomain
+    def prompt(self) -> None:
+        self.execute()
+
+    def execute(self) -> None:
+        rules = Rule.get_all()
+        print("Existing Rules: ")
+        for rule in rules:
+            print(f'  - {str(rule)}')
+
+
+class ActionDelRule(Action):
+    @returntomain
+    def prompt(self) -> None:
+        rules = Rule.get_all()
+        self.action = cust_prompt([
+            {
+                'type': 'list',
+                'name': 'rule_id',
+                'message': 'Select rule to delete',
+                'choices': [
+                    {
+                        'name': str(rule),
+                        'value': rule.id
+                    } for rule in rules
+                ]
+            },
+            confirmation()
+        ])
+        self.execute()
+
+    def execute(self) -> None:
+        Rule.delete_by_id(self.action['rule_id'])
 
 
 class ActionCreateCondition(Action):
@@ -212,9 +285,9 @@ class ActionCreateCondition(Action):
         regexp_prompt_lambda = lambda answers: answers['option'] == 'Regexp'
 
         self.action = cust_prompt([
-            get_class_option_list(ActionCreateCondition.CONDITION_TYPES.keys(), 'Choose condition type'),
+            get_option_list(ActionCreateCondition.CONDITION_TYPES.keys(), 'Choose condition type'),
             input('regexp', 'Enter regexp', when=regexp_prompt_lambda),
-            get_class_option_list(ActionCreateCondition.TRANSACTION_ATTRIBUTES, 'Choose transaction attribute', 
+            get_option_list(ActionCreateCondition.TRANSACTION_ATTRIBUTES, 'Choose transaction attribute', 
                 when=regexp_prompt_lambda)
         ])
 
