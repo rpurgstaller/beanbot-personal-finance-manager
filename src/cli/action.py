@@ -6,7 +6,7 @@ from examples import custom_style_3
 
 from beancount.core.account_types import DEFAULT_ACCOUNT_TYPES
 from sqlalchemy.sql.expression import false
-from cli.prompt import CLASS_OPTION, PATH_NAME, account_chooser, confirmation, cust_prompt, cust_prompt_class_option, get_option_list, get_path, input
+from cli.prompt import CLASS_OPTION, CONFIRMATION_NAME, PATH_NAME, account_chooser, confirmation, cust_prompt, cust_prompt_class_option, get_datatype_list, get_option_list, get_path, input
 
 from data_import.bank_importer import GiroImporter
 
@@ -15,6 +15,7 @@ import os
 
 from model.condition import ConditionIsExpense, ConditionIsIncome, ConditionRegexp
 from model.rule import Rule
+from model.rule_transformation import RuleTransformation
 
 def returntomain(func):
     def wrap(*args, **kwargs):
@@ -110,7 +111,8 @@ class ActionDelAccount(Action):
         self.execute()
 
     def execute(self) -> None:
-        Account.delete_by_id(self.action['account_id'])
+        if(self.action[CONFIRMATION_NAME]):
+            Account.delete_by_id(self.action['account_id'])
 
 
 class ActionImportAccountCsv(Action):
@@ -164,7 +166,6 @@ class ActionRuleMain(Action):
 
 
 class ActionAddRule(Action):
-
     @returntomain
     def prompt(self) -> None:
         self.action_rule = cust_prompt([
@@ -172,31 +173,34 @@ class ActionAddRule(Action):
             {
                 'type': 'input',
                 'message': 'Enter rule description',
-                'name': 'name',
+                'name': 'rule_description',
             }
         ])
 
-        choices = {
-            'Transformation': ActionCreateRuleTransformation,
-            'Conditions': ActionCreateCondition,
-            'Done' : None
-        }
-
-        #self.transformations = []
-        #self.conditions = []
-
-        #action_results = {
-        #    ActionCreateRuleTransformation : lambda action_result : self.transformations.append(action_result),
-        #    ActionCreateCondition : lambda action_result : self.conditions.append(action_result)
-        #}
+        choices = [
+            {
+                'name' : 'Add Transformation',
+                'value' : ActionCreateRuleTransformation
+            },
+            {
+                'name' : 'Add Condition',
+                'value' : ActionCreateCondition
+            },
+            {
+                'name' : 'Done',
+                'value' : None
+            }
+        ]
 
         self.action_results = []
 
         while 1:
-            action_class = cust_prompt(get_option_list(choices.keys(), "Chose option"))['option']
-            if not action_class:
+            rule_action = cust_prompt(get_option_list(choices, "Configure action"))
+            
+            if 'option' not in rule_action:
                 break
-
+            
+            action_class = rule_action['option']
             action_instance = action_class()
             action_instance.prompt()
             self.action_results.append(action_instance)
@@ -207,26 +211,86 @@ class ActionAddRule(Action):
         rule_params = self.action_rule
         action_results = self.action_results
 
+        ref_objs = []
+
+        for action_result in action_results:
+            action_result.execute()
+            ref_objs.append(action_result.ref_obj)
+
+        Rule.build(rule_params['account_id'], rule_params['rule_description'], ref_objs=ref_objs)
+
+
 
 class ActionCreateRuleTransformation(Action):
 
-    TRANSACTION_ATTRIBUTES = {
-        'partner_account_id' : 'partner account',
-        'partner_name' : 'partner name'
-    }
+    TRANSACTION_ATTRIBUTES = [
+        {
+            'name' : 'partner account',
+            'value' : 'partner_account_id'
+        },
+        {
+            'name' : 'partner name',
+            'value' : 'partner_name'
+        }    
+    ]
 
-    @returntomain
     def prompt(self) -> None:
         self.action = cust_prompt([
-            {
-                get_option_list(ActionCreateRuleTransformation.TRANSACTION_ATTRIBUTES, "Choose transaction attribute to transform", 
-                    name='transaction_attribute'),
-    
-            }
+            get_option_list(ActionCreateRuleTransformation.TRANSACTION_ATTRIBUTES, "Choose transaction attribute to transform", 
+                name='attribute_name'),
+            input(name='attribute_value', message='Choose value'),
+            get_datatype_list(name='value_type')
         ])
 
     def execute(self) -> None:
-        pass
+        self.ref_obj = RuleTransformation.build(**self.action)
+
+
+class ActionCreateCondition(Action):
+
+    CONDITION_TYPES = [
+        {
+            'name' : 'Regexp',
+            'value' : ConditionRegexp
+        },
+        {
+            'name' : 'Is Income',
+            'value' : ConditionIsIncome
+        },
+        {
+            'name' : 'Is Expense',
+            'value' : ConditionIsExpense
+        }    
+    ]
+
+    TRANSACTION_ATTRIBUTES = [
+        {
+            'name' : 'reference',
+            'value' : 'reference'
+        },
+        {
+            'name' : 'partner name',
+            'value' : 'partner_name'
+        }    
+    ]
+
+    def prompt(self) -> None:
+
+        regexp_prompt_lambda = lambda answers: answers['condition_type'] == ConditionRegexp
+
+        self.action = cust_prompt([
+            get_option_list(ActionCreateCondition.CONDITION_TYPES, 'Choose condition type', 'condition_type'),
+            input('regexp_pattern', 'Enter regexp', when=regexp_prompt_lambda),
+            get_option_list(ActionCreateCondition.TRANSACTION_ATTRIBUTES, 'Choose transaction attribute', 'transaction_attribute',
+                when=regexp_prompt_lambda)
+        ])
+
+    def execute(self) -> None:
+        condition_class = self.action['condition_type']
+
+        args = {k: v for (k, v) in self.action.items() if k != 'condition_type'}
+
+        self.ref_obj = condition_class.build(**args)
 
 
 class ActionListRules(Action):
@@ -237,9 +301,9 @@ class ActionListRules(Action):
 
     def execute(self) -> None:
         rules = Rule.get_all()
-        print("Existing Rules: ")
+        print("Rules: ")
         for rule in rules:
-            print(f'  - {str(rule)}')
+            print(f'  - {rule.get_as_string()}')
 
 
 class ActionDelRule(Action):
@@ -264,35 +328,6 @@ class ActionDelRule(Action):
 
     def execute(self) -> None:
         Rule.delete_by_id(self.action['rule_id'])
-
-
-class ActionCreateCondition(Action):
-
-    CONDITION_TYPES = {
-        'Regexp' : ConditionRegexp,
-        'Is Income' : ConditionIsIncome,
-        'Is Expense' : ConditionIsExpense
-    }
-
-    TRANSACTION_ATTRIBUTES = {
-        'reference' : 'reference',
-        'partner_name' : 'partner name'
-    }
-        
-    @returntomain
-    def prompt(self) -> None:
-
-        regexp_prompt_lambda = lambda answers: answers['option'] == 'Regexp'
-
-        self.action = cust_prompt([
-            get_option_list(ActionCreateCondition.CONDITION_TYPES.keys(), 'Choose condition type'),
-            input('regexp', 'Enter regexp', when=regexp_prompt_lambda),
-            get_option_list(ActionCreateCondition.TRANSACTION_ATTRIBUTES, 'Choose transaction attribute', 
-                when=regexp_prompt_lambda)
-        ])
-
-    def execute(self) -> None:
-        x = self.action
 
 
 class ActionPizza(Action):

@@ -14,7 +14,7 @@ class RuleTransformation(BaseModel, KeyValueMixin):
 
     rule_id = Column(Integer, ForeignKey('rules.id'))
 
-    _attribute_name = Column(String, nullable=False)
+    attribute_name = Column(String, nullable=False)
 
     attribute_value = Column(String)
 
@@ -22,13 +22,14 @@ class RuleTransformation(BaseModel, KeyValueMixin):
 
     rule = relationship('Rule', back_populates='rule_transformations')
 
-    @hybrid_property
-    def attribute_name(self):
-        return self._attribute_name
-
-    @attribute_name.setter
-    def attribute_name(self, attribute_name):
-        assert hasattr(Transaction, attribute_name)
-
-        self._attribute_name = attribute_name
+    @classmethod
+    def build(cls, attribute_name, attribute_value, value_type):
+        rule_transformation = cls()
+        rule_transformation.attribute_name = attribute_name
+        rule_transformation.attribute_value = attribute_value
+        rule_transformation.value_type = value_type
+        return rule_transformation
     
+    def get_as_string(self, indentation_size=2, indentation_start=4) -> str:
+        indentation_lvl_1 = ' ' * indentation_start
+        return f'Attribute Name: {indentation_lvl_1}{self.attribute_name} - Attribute value: {self.attribute_value} ({self.value_type})'

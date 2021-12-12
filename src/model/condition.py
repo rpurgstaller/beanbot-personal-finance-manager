@@ -26,12 +26,20 @@ class Condition(BaseModel):
     def evaluate(self, transaction) -> None:
         pass
 
+    def get_as_string(self, indentation_size=2, indentation_start=4) -> str:
+        indentation_lvl_1 = ' ' * indentation_start
+        return f'{indentation_lvl_1}{self.condition_type}'
+
+    @classmethod
+    def build(cls):
+        return cls()
+
 
 class ConditionRegexp(Condition):
 
-    regexp_pattern = Column(String, nullable=False)
+    regexp_pattern = Column(String)
 
-    transaction_attribute = Column(String, nullable=False)
+    transaction_attribute = Column(String)
 
     __mapper_args__ = { 'polymorphic_identity' : 'condition_regexp' }
 
@@ -42,6 +50,15 @@ class ConditionRegexp(Condition):
 
         return re.search(self.regexp_pattern, regexp_string, re.IGNORECASE)
 
+    @classmethod
+    def build(cls, regexp_pattern, transaction_attribute):
+        condition = cls()
+        condition.regexp_pattern = regexp_pattern
+        condition.transaction_attribute = transaction_attribute
+        return condition
+
+    def get_as_string(self, indentation_size=2, indentation_start=4) -> str:
+        return f'{super().get_as_string(indentation_size, indentation_start)} - Regexp: \"{self.regexp_pattern}\" - Transaction attribute: {self.transaction_attribute}'
 
 class ConditionIsIncome(Condition):
 
@@ -57,5 +74,3 @@ class ConditionIsExpense(Condition):
 
     def evaluate(self, transaction) -> bool:
         return transaction.amount < 0
-
-        

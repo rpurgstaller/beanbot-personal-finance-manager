@@ -49,33 +49,60 @@ def get_path(message : str):
     }
 
 
-def get_option_list(choices : List, message : str, name='option'):
+def get_option_list(choices : List, message : str, name='option', when=None):
     return {
         'type': 'list',
         'message': message,
         'name': name,
-        'choices': choices
+        'choices': choices,
+        'when': when
     }
+
+
+def get_datatype_list(message : str = 'Choose datatype', name='datatype'):
+
+    supported_datatypes = [
+        {
+            'name' : 'String',
+            'value' : 'str'
+        },
+        {
+            'name' : 'Float',
+            'value' : 'float'
+        },
+        {
+            'name' : 'Integer',
+            'value' : 'int'
+        }    
+    ]
+
+    return get_option_list(supported_datatypes, message, name)
 
 
 def input(name, message, default=None, when=None):
-    return {
+    input_promt = {
         'type' : 'input',
         'name' : name,
-        'message' : message,
-        'default' : default,
-        'when' : when
+        'message' : message
     }
+    if default:
+        input_promt['default'] = default
+
+    if when:
+        input_promt['when'] = when
+
+    return input_promt
 
 def account_chooser(name='account_id', message='Select account'):
-    return {
-        'type': 'list',
-        'name': name,
-        'message': message,
-        'choices': [
+    accounts = Account.get_all()
+    if len(accounts) > 0:
+        choices = [
             {
                 'name': str(account),
                 'value': account.id
-            } for account in Account.get_all()
+            } for account in accounts
         ]
-    }
+        return get_option_list(choices, message, name)
+
+    print("No accounts existent")
+    return None
