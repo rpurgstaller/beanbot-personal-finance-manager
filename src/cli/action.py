@@ -8,10 +8,10 @@ from beancount.core.account_types import DEFAULT_ACCOUNT_TYPES
 from sqlalchemy.sql.expression import false
 from cli.prompt import CLASS_OPTION, CONFIRMATION_NAME, PATH_NAME, account_chooser, confirmation, cust_prompt, cust_prompt_class_option, get_datatype_list, get_option_list, get_path, input
 
-from data_import.bank_importer import GiroImporter
+from data_import.bank_importer import TransactionImporter
 
 from model.account import Account
-import os
+from config import Config
 
 from model.condition import ConditionIsExpense, ConditionIsIncome, ConditionRegexp
 from model.rule import Rule
@@ -150,7 +150,7 @@ class ActionTransactionImportCsv(Action):
         self.execute()
 
     def execute(self) -> None:
-        GiroImporter(os.environ['BEANBOT_GIRO_ACCOUNT']).execute(self.path_name)
+        TransactionImporter(Config.GIRO["ACCOUNT_KEY"]).execute(self.path_name)
 
 
 class ActionRuleMain(Action):
@@ -330,6 +330,15 @@ class ActionDelRule(Action):
         Rule.delete_by_id(self.action['rule_id'])
 
 
+class ActionBeancountExtract(Action):
+
+    @returntomain
+    def prompt(self) -> None:
+        return super().prompt()
+
+    def execute(self) -> None:
+        return super().execute()
+
 class ActionPizza(Action):
 
     @returntomain
@@ -347,7 +356,6 @@ class ActionExit(Action):
 
     def execute(self) -> None:
         quit()
-
 
 def run():
     ActionMain().prompt()

@@ -1,7 +1,7 @@
 import unittest
 from config import config_by_name
 import database as db
-from data_import.bank_importer import GiroImporter
+from data_import.bank_importer import TransactionImporter
 
 
 def testdb(func):

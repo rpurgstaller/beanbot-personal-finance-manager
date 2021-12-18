@@ -1,6 +1,6 @@
 import unittest
 
-from data_import.bank_importer import GiroImporter
+from data_import.bank_importer import TransactionImporter
 from config import config_by_name
 from model.account import Account
 import os
@@ -50,7 +50,7 @@ class TestRule(unittest.TestCase):
 
         session.commit()
 
-        GiroImporter(acc_transaction.key).execute(file)
+        TransactionImporter(acc_transaction.key).execute(file)
 
         transactions = session.query(Transaction).filter(Transaction.partner_name == 'supermarket').all()
 

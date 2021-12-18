@@ -1,7 +1,7 @@
 import csv
 import unittest
 
-from data_import.bank_importer import GiroImporter
+from data_import.bank_importer import TransactionImporter
 from config import config_by_name
 from model.account import Account
 from model.transaction import Transaction
@@ -29,7 +29,7 @@ class TestGiroImporter(unittest.TestCase):
 
         file = '/workspaces/beancount-cli/data/test/giro_transaction_test.csv'
         
-        importer = GiroImporter(TestGiroImporter.GIRO_ACCOUNT_KEY)
+        importer = TransactionImporter(TestGiroImporter.GIRO_ACCOUNT_KEY)
         
         importer.execute(file)
 

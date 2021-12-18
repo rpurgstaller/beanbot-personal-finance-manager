@@ -5,18 +5,17 @@ import cli.action as action
 import database as db
 import sys, argparse
 
-from config import config_by_name
+from config import Config
 
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--mode')
 
-
 def main(mode):
-    cfg = config_by_name[mode]()
+    Config.build(mode)
 
-    db.initialize_db(cfg.DB_FILENAME)
+    db.initialize_db(Config.DB_FILENAME)
 
     action.run()
 
