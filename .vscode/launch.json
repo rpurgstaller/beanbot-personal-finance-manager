@@ -26,7 +26,7 @@
             "request": "launch",
             "program": "src/main.py",
             "console": "integratedTerminal",
-            "args": ["--mode", "dev"]
+            "args": ["--mode", "DEV"]
         },
         {
             "name": "Python: Current File",

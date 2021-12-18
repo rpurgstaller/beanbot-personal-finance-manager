@@ -1,25 +1,20 @@
+import json
+
+
 class Config:
-    DEBUG = False
-    TEST = False
-    DB_FILENAME = ""
 
-class TestConfig(Config):
-    DEBUG = True
-    TEST = True
-    DB_FILENAME = "test.db"
+    DB_FILENAME = None
 
-class DevConfig(Config):
-    DEBUG = True
-    TEST = False
-    DB_FILENAME = "dev.db"
+    GIRO = None
 
-class ProductionConfig(Config):
-    DEBUG = True
-    TEST = False
-    DB_FILENAME = "model.db"
+    def build(mode):
+        cfg = json.load()
+        
+        assert mode in ["DEV", "TEST", "PROD"], f"Mode \"{mode}\" is invalid"
+        assert "DATABASE_FILENAMES" in cfg, "Database configuration missing"
+        assert "GIRO" in cfg, "Giro configuration missing"
+        assert "ACCOUNT_KEY" in cfg["GIRO"], "Account key for giro configuration missing"
+        assert "TRANSACTION_MAPPING" in cfg["GIRO"], "Transaction mapping for giro configuration missing"
 
-config_by_name = dict(
-    test=TestConfig,
-    dev=DevConfig,
-    prod=ProductionConfig
-)
+        Config.DB_FILENAME = cfg["DATABASE_FILENAMES"][mode]
+        Config.GIRO = cfg["GIRO"]

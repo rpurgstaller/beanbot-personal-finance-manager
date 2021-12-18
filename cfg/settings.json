@@ -1,0 +1,21 @@
+{
+    "DATABASE_FILENAMES" : {
+        "PROD" : "model.db",
+        "DEV" : "dev.db",
+        "TEST" : "test.db"
+    },
+    "GIRO" : {
+        "ACCOUNT_KEY" : "SPARKASSE_GIRO",
+        "TRANSACTION_MAPPING" : {
+            "Partnername" : "partner_name",
+            "Partner IBAN" : "partner_iban",
+            "BIC/SWIFT" : "partner_bic",
+            "Partner Kontonummer" : "partner_account_number",
+            "Bankleitzahl" : "partner_bank_code",
+            "Buchungsdatum": "date",
+            "Betrag" : "amount",
+            "Währung" : "currency_code",
+            "Buchungs-Info": "reference"
+        }
+    }
+}

@@ -6,22 +6,12 @@ from database import BaseModel, get_session
 from model.account import Account
 from model.rule import Rule
 from model.transaction import Transaction
+from config import Config
 
-
-class GiroImporter():
+class TransactionImporter():
 
     #TODO config file
-    CFG_MAPPING_TRANSACTION = {
-        "Partnername" : "partner_name",
-        "Partner IBAN" : "partner_iban",
-        "BIC/SWIFT" : "partner_bic",
-        "Partner Kontonummer" : "partner_account_number",
-        "Bankleitzahl" : "partner_bank_code",
-        "Buchungsdatum": "date",
-        "Betrag" : "amount",
-        "Währung" : "currency_code",
-        "Buchungs-Info": "reference"
-    }
+    
 
     def __init__(self, account_key) -> None:
         super().__init__()
@@ -36,7 +26,7 @@ class GiroImporter():
 
         rules : List[Rule] = session.query(Rule).filter(Rule.account_id==giro_account.id).all()
 
-        transactions = CsvImporter().execute(filename, Transaction.build, GiroImporter.CFG_MAPPING_TRANSACTION)
+        transactions = CsvImporter().execute(filename, Transaction.build, Config.GIRO["TRANSACTION_MAPPING"])
 
         for transaction in transactions:
             transaction.account_id = giro_account.id
