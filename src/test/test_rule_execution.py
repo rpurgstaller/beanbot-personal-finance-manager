@@ -50,7 +50,7 @@ class TestRule(unittest.TestCase):
 
         session.commit()
 
-        TransactionImporter(acc_transaction.key).execute(file)
+        TransactionImporter(Account.get_giro()).execute(file)
 
         transactions = session.query(Transaction).filter(Transaction.partner_name == 'supermarket').all()
 

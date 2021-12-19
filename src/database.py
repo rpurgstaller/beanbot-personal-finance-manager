@@ -9,7 +9,7 @@ from sqlalchemy import MetaData
 from sqlalchemy import create_engine
 from sqlalchemy.orm.session import Session, sessionmaker
 
-from util.path import DB_PATH
+from util.path import P_DB
 
 
 Model = declarative_base()
@@ -22,7 +22,7 @@ def get_session():
 
 def _init_db(db_filename):
     global _database
-    _database = DB()
+    _database = Db()
     _database.initialize(db_filename)
 
 
@@ -51,13 +51,13 @@ def sessioncommit(func):
     return wrap
 
 
-class DB:
+class Db:
 
     def __init__(self) -> None:
         self._session = None
 
     def initialize(self, db_filename):
-        self._engine = create_engine(f'sqlite:///{DB_PATH}/{db_filename}')
+        self._engine = create_engine(f'sqlite:///{P_DB}/{db_filename}')
 
     def create_all(self):
         assert self._engine is not None, "Engine is not initialized"

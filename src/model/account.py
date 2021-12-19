@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date
 from sqlalchemy.sql.expression import false
+from config import Config
 from data_import.csv_importer import CsvImporter
 
 from database import BaseModel, get_session, sessioncommit
@@ -31,6 +32,15 @@ class Account(BaseModel):
         account.key = key
         account.currency = currency
         return account
+
+    @classmethod
+    def get_giro(cls):
+        return cls.get_by_key(Config.GIRO["ACCOUNT_KEY"])
+
+    @classmethod
+    def get_by_key(cls, account_key : str):
+        session = get_session()
+        return session.query(cls).filter(cls.key == account_key).first()
 
     @staticmethod
     def get_full_account_dict(session):

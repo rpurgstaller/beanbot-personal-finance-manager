@@ -15,3 +15,5 @@ class BaseDirectiveBuilder(ABC):
     @abstractmethod
     def build_directives(self, db_transaction : DbTransaction):
         pass
+
+    

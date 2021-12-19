@@ -29,7 +29,7 @@ class TestGiroImporter(unittest.TestCase):
 
         file = '/workspaces/beancount-cli/data/test/giro_transaction_test.csv'
         
-        importer = TransactionImporter(TestGiroImporter.GIRO_ACCOUNT_KEY)
+        importer = TransactionImporter(Account.get_giro())
         
         importer.execute(file)
 

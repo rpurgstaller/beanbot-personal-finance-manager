@@ -11,11 +11,11 @@ from cli.prompt import CLASS_OPTION, CONFIRMATION_NAME, PATH_NAME, account_choos
 from data_import.bank_importer import TransactionImporter
 
 from model.account import Account
-from config import Config
 
 from model.condition import ConditionIsExpense, ConditionIsIncome, ConditionRegexp
 from model.rule import Rule
 from model.rule_transformation import RuleTransformation
+from util.path import P_BEANCOUNT
 
 def returntomain(func):
     def wrap(*args, **kwargs):
@@ -55,7 +55,8 @@ class ActionAccountMain(Action):
             'Add account': ActionAddAccount,
             'List accounts': ActionListAccounts,
             'Delete Account': ActionDelAccount,
-            'Import from CSV': ActionImportAccountCsv
+            'Import from CSV': ActionImportAccountCsv,
+            'Cancel': ActionMain
         }
 
         cust_prompt_class_option(choices, 'choose option')
@@ -131,7 +132,8 @@ class ActionTransactionMain(Action):
 
     def prompt(self) -> None:
         choices = {
-            'Import from CSV': ActionTransactionImportCsv
+            'Import from CSV': ActionTransactionImportCsv,
+            'Cancel': ActionMain
         }
 
         cust_prompt_class_option(choices, 'choose option')
@@ -150,7 +152,7 @@ class ActionTransactionImportCsv(Action):
         self.execute()
 
     def execute(self) -> None:
-        TransactionImporter(Config.GIRO["ACCOUNT_KEY"]).execute(self.path_name)
+        TransactionImporter(Account.get_giro()).execute(self.path_name)
 
 
 class ActionRuleMain(Action):
@@ -159,7 +161,8 @@ class ActionRuleMain(Action):
         choices = {
             'Add Rule': ActionAddRule,
             'List Rules': ActionListRules,
-            'Delete Rule': ActionDelRule
+            'Delete Rule': ActionDelRule,
+            'Cancel': ActionMain
         }
 
         cust_prompt_class_option(choices, 'choose option')
@@ -330,14 +333,31 @@ class ActionDelRule(Action):
         Rule.delete_by_id(self.action['rule_id'])
 
 
+class ActionBeancountMain(Action):
+
+    def prompt(self) -> None:
+        choices = {
+            'Extract': ActionBeancountExtract,
+            'Cancel': ActionMain
+        }
+
+        cust_prompt_class_option(choices, 'choose option')
+
+
 class ActionBeancountExtract(Action):
 
     @returntomain
     def prompt(self) -> None:
-        return super().prompt()
+        self.action = cust_prompt([
+            get_path('Save as', default=P_BEANCOUNT)
+        ])
+        self.execute()
 
     def execute(self) -> None:
+        path = self.action[PATH_NAME]
+        
         return super().execute()
+
 
 class ActionPizza(Action):
 

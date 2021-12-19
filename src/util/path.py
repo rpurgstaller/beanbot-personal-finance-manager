@@ -1,5 +1,11 @@
-DATA_PATH = '/workspaces/beancount-cli/data'
+P_BASE = '/workspaces/beancount-cli'
 
-IMPORT_PATH = f'{DATA_PATH}/import'
+P_CFG = f'{P_BASE}/cfg'
 
-DB_PATH = f'{DATA_PATH}/database'
+P_DATA = f'{P_BASE}/data'
+
+P_IMPORT = f'{P_DATA}/import'
+
+P_DB = f'{P_DATA}/database'
+
+P_BEANCOUNT = f'{P_DATA}/beancount'

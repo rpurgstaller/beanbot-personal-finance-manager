@@ -5,7 +5,7 @@ class CsvImporter(object):
         super().__init__()
 
     def execute(self, file : str, builder_func, column_transformation = None):
-        with open(file) as csvDataFile:
+        with open(file, 'r', newline='', encoding='UTF-16') as csvDataFile:
 
             reader = csv.reader(csvDataFile)
 

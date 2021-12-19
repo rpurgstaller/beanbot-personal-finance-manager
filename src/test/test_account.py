@@ -1,5 +1,4 @@
 import unittest
-from data_import.bank_importer import TransactionImporter
 from config import config_by_name
 from model.account import Account
 import os

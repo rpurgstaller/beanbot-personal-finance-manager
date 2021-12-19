@@ -10,26 +10,21 @@ from config import Config
 
 class TransactionImporter():
 
-    #TODO config file
-    
-
-    def __init__(self, account_key) -> None:
+    def __init__(self, account) -> None:
         super().__init__()
-        self.account_key = account_key
+        self.account = account
 
     def execute(self, filename : str):
         session = get_session()
 
         accounts = Account.get_full_account_dict(session)
-        
-        giro_account = accounts[self.account_key]
 
-        rules : List[Rule] = session.query(Rule).filter(Rule.account_id==giro_account.id).all()
+        rules : List[Rule] = session.query(Rule).filter(Rule.account_id==self.account.id).all()
 
         transactions = CsvImporter().execute(filename, Transaction.build, Config.GIRO["TRANSACTION_MAPPING"])
 
         for transaction in transactions:
-            transaction.account_id = giro_account.id
+            transaction.account_id = self.account.id
             for rule in rules:
                 if rule.should_apply(transaction):
                     rule.transform(transaction)

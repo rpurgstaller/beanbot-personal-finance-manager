@@ -5,7 +5,7 @@ from examples import custom_style_3
 from PyInquirer import prompt
 from model.account import Account
 
-from util.path import IMPORT_PATH
+from util.path import P_IMPORT
 
 
 PATH_NAME = 'import_path'
@@ -39,13 +39,13 @@ def confirmation(message : str = 'Are you sure?'):
     }
 
 
-def get_path(message : str):
+def get_path(message : str, default=P_IMPORT):
     return {
         'type': 'input',
         'name': PATH_NAME,
         'message': message,
         'validate': PathValidation,
-        'default': IMPORT_PATH
+        'default': default
     }
 
 
