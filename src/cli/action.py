@@ -16,6 +16,7 @@ from model.condition import ConditionIsExpense, ConditionIsIncome, ConditionRege
 from model.rule import Rule
 from model.rule_transformation import RuleTransformation
 from util.path import P_BEANCOUNT
+from beancount_import.writer import write_all as beancount_write_all
 
 def returntomain(func):
     def wrap(*args, **kwargs):
@@ -41,6 +42,7 @@ class ActionMain(Action):
             'Accounts': ActionAccountMain,
             'Transactions': ActionTransactionMain,
             'Rules' : ActionRuleMain,
+            'Beancount' : ActionBeancountMain,
             'pizza': ActionPizza,
             'exit': ActionExit
         }
@@ -355,9 +357,12 @@ class ActionBeancountExtract(Action):
 
     def execute(self) -> None:
         path = self.action[PATH_NAME]
+        if not path.endswith(".beancount"):
+            path = f'{path}.beancount'
+        f = open(path, "w") 
+        beancount_write_all(f)
+        f.close()
         
-        return super().execute()
-
 
 class ActionPizza(Action):
 

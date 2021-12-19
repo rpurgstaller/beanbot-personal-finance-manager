@@ -30,6 +30,7 @@ class Transaction(BaseModel):
     def build(cls, date, amount, currency_code, reference, partner_name, partner_iban, partner_bic, partner_account_number, partner_bank_code):
         transaction = cls()
         transaction.date = parse_date(date)
+        # TODO transform amount
         transaction.amount = amount
         transaction.currency_code = currency_code
         transaction.reference = reference
