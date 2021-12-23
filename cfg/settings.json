@@ -17,8 +17,5 @@
             "Währung" : "currency_code",
             "Buchungs-Info": "reference"
         }
-    },
-    "BEANCOUNT" : {
-
     }
 }
