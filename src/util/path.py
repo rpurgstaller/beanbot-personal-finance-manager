@@ -1,4 +1,4 @@
-P_BASE = '/workspaces/beancount-cli'
+P_BASE = '/workspaces/beanbot-personal-finance-manager'
 
 P_CFG = f'{P_BASE}/cfg'
 

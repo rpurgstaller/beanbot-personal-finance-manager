@@ -6,16 +6,17 @@ from examples import custom_style_3
 
 from beancount.core.account_types import DEFAULT_ACCOUNT_TYPES
 from sqlalchemy.sql.expression import false
-from cli.prompt import CLASS_OPTION, CONFIRMATION_NAME, PATH_NAME, account_chooser, confirmation, cust_prompt, cust_prompt_class_option, get_datatype_list, get_option_list, get_path, input
+from cli.prompt import CLASS_OPTION, CONFIRMATION_NAME, PATH_NAME, account_chooser, confirmation, cust_prompt, cust_prompt_class_option, get_datatype_list, get_option_list, get_path, input, transaction_chooser
 
 from data_import.bank_importer import TransactionImporter
 
 from model.account import Account
-
 from model.condition import ConditionIsExpense, ConditionIsIncome, ConditionRegexp
 from model.rule import Rule
 from model.rule_transformation import RuleTransformation
+from model.transaction import Transaction
 from util.path import P_BEANCOUNT
+
 from beancount_import.writer import write_all as beancount_write_all
 
 def returntomain(func):
@@ -135,6 +136,7 @@ class ActionTransactionMain(Action):
     def prompt(self) -> None:
         choices = {
             'Import from CSV': ActionTransactionImportCsv,
+            'Similar Transactions for unassigned transactions': ActionTransactionUnasignedSimilarityMeasure,
             'Cancel': ActionMain
         }
 
@@ -156,6 +158,25 @@ class ActionTransactionImportCsv(Action):
     def execute(self) -> None:
         TransactionImporter(Account.get_giro()).execute(self.path_name)
 
+
+class ActionTransactionUnasignedSimilarityMeasure(Action):
+
+    @returntomain
+    def prompt(self) -> None:
+        self.unassigned_transactions = Transaction.get_unassigned_transactions()
+        self.action = cust_prompt([
+            transaction_chooser(self.unassigned_transactions)
+        ])
+        self.execute()
+    
+    def execute(self) -> None:
+        transaction_id = self.action(["transaction_id"])
+        source_transaction = Transaction.get_by_id(transaction_id)
+
+        transactions = Transaction.get_most_similar_transactions(source_transaction, self.unassigned_transactions, n=5)
+        print("Most similar transactions:")
+        for t in transactions:
+            print(str(t))
 
 class ActionRuleMain(Action):
 

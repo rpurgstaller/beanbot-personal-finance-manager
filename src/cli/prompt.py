@@ -106,3 +106,16 @@ def account_chooser(name='account_id', message='Select account'):
 
     print("No accounts existent")
     return None
+
+def transaction_chooser(transactions, name='transaction_id', message='Select transaction'):
+    if len(transactions) > 0:
+        choices = [
+            {
+                'name': str(transaction),
+                'value': transaction.id
+            } for transaction in transactions
+        ]
+        return get_option_list(choices, message, name)
+
+    print("No transactions existent")
+    return None

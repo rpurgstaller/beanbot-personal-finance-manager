@@ -106,3 +106,8 @@ class BaseModel(Model):
         session = get_session()
         session.query(cls).filter(cls.id == id).delete(synchronize_session=False)
         session.commit()
+
+    @classmethod
+    def get_by_id(cls, id : int):
+        session = get_session()
+        return session.query(cls).filter(cls.id == id).first()
