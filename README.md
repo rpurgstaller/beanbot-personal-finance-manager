@@ -4,8 +4,25 @@
 
 ## installation
 
-- Docker
-- Set environment variable BEANBOT_GIRO_ACCOUNT
+### Requirements
+
+```
+pip install -r requirements.txt
+```
+
+### Configuration
+
+Set Environment Variables:
+
+- BEANBOT_HOME_DIR
+- BEANBOT_GIRO_ACCOUNT 
+
+## Run
+
+
+
+## Features
+
 
 
 ## Account 

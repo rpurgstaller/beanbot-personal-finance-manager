@@ -117,5 +117,5 @@ def transaction_chooser(transactions, name='transaction_id', message='Select tra
         ]
         return get_option_list(choices, message, name)
 
-    print("No transactions existent")
+    print("No transactions found")
     return None

@@ -1,4 +1,6 @@
-P_BASE = '/workspaces/beanbot-personal-finance-manager'
+import os
+
+P_BASE = os.getenv('BEANBOT_HOME_DIR')
 
 P_CFG = f'{P_BASE}/cfg'
 
